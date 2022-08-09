@@ -19,10 +19,12 @@ import (
 )
 
 type Credentials struct {
-	Username string `json:"user"`
-	Password string `json:"pass"`
-	Broker   string `json:"broker"`
-	Port     int    `json:"port"`
+	Username               string `json:"user"`
+	Password               string `json:"pass"`
+	Broker                 string `json:"broker"`
+	Port                   int    `json:"port"`
+	OpenWeatherApiKey      string `json:"openweatherapikey"`
+	OpenWeatherApiLocation string `json:"openweatherlocation"`
 }
 
 type Command struct {
@@ -60,7 +62,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	shouldDraw := true
+	shouldDraw := new(bool)
+	*shouldDraw = false
 
 	// Create the MQTT options.
 	options := mqtt.NewClientOptions()
@@ -81,8 +84,8 @@ func main() {
 			textToDraw <- cmd
 		}
 		if msg.Topic() == "home-assistant/signage/display/control" {
-			shouldDraw = string(msg.Payload()) == "payload_on"
-			publishDisplayStatus(client, shouldDraw)
+			*shouldDraw = string(msg.Payload()) == "payload_on"
+			publishDisplayStatus(client, *shouldDraw)
 		}
 	})
 
@@ -153,7 +156,6 @@ func main() {
 
 	// Every 10 minutes, publish the current state.
 	ticker := time.NewTicker(10 * time.Minute)
-	quit := make(chan struct{})
 
 	go func() {
 		for {
@@ -161,17 +163,20 @@ func main() {
 			case <-ticker.C:
 				log.Printf("Ticker: Publishing current state")
 				publishAvailable(client)
-				publishDisplayStatus(client, shouldDraw)
-			case <-quit:
-				ticker.Stop()
-				return
+				publishDisplayStatus(client, *shouldDraw)
 			}
 		}
 	}()
+
+	quit := make(chan bool)
+	isRunningIdle := false
+
 	// Wait for messages.
 	for {
 		select {
 		case command := <-textToDraw:
+			quit <- true
+			isRunningIdle = false
 			var imgToDraw image.Image
 			switch command.Priority {
 			case PriorityExclamation:
@@ -185,7 +190,7 @@ func main() {
 			}
 			if imgToDraw != nil {
 				for i := 0; i < 15; i++ {
-					if shouldDraw {
+					if *shouldDraw {
 						display.Draw(image.Rect(0, 0, 16, 16), imgToDraw, image.Point{0, 0})
 						time.Sleep(150 * time.Millisecond)
 						display.Halt()
@@ -196,25 +201,49 @@ func main() {
 				}
 			}
 			for x := -16; true; x++ {
-				if shouldDraw {
-					textimage, err := unicornsignage.ImageFromText(command.Messsage, fontBytes, x)
+				if *shouldDraw {
+					textimage, err := unicornsignage.ImageFromText(command.Messsage, fontBytes, x, 15)
 					if err != nil {
 						log.Fatal(err)
 					}
 					display.Draw(image.Rect(0, 0, 16, 16), textimage, image.Point{0, 0})
 					time.Sleep(2 * time.Millisecond)
-					if (x > 16) && isFullyBlack(textimage) {
+					if (x > 16) && imageIsFullyBlack(textimage) {
 						break
 					}
 				} else {
 					display.Halt()
 				}
 			}
+		default:
+			if !isRunningIdle {
+				isRunningIdle = true
+				go displayIdleAnimation(display, quit, shouldDraw, fontBytes, &creds)
+			}
 		}
 	}
 }
 
-func isFullyBlack(img image.Image) bool {
+func displayIdleAnimation(display *unicornhd.Dev, quit chan bool, shouldDraw *bool, fontBytes []byte, creds *Credentials) {
+	for {
+		select {
+		case <-quit:
+			return
+		default:
+			if *shouldDraw {
+				idleAnim, err := unicornsignage.LoadIdleAnimation(fontBytes, creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation)
+				if err != nil {
+					log.Fatal(err)
+				}
+				display.Draw(image.Rect(0, 0, 16, 16), idleAnim, image.Point{0, 0})
+			} else {
+				display.Halt()
+			}
+		}
+	}
+}
+
+func imageIsFullyBlack(img image.Image) bool {
 	for x := img.Bounds().Min.X; x < img.Bounds().Dx(); x++ {
 		for y := img.Bounds().Min.Y; y < img.Bounds().Dy(); y++ {
 			r, g, b, _ := img.At(x, y).RGBA()

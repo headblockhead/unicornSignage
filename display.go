@@ -1,17 +1,20 @@
 package unicornsignage
 
 import (
+	"fmt"
 	"image"
+	"log"
 
+	owm "github.com/briandowns/openweathermap"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 )
 
-func ImageFromText(text string, fontBytes []byte, x int) (outimg image.Image, err error) {
+func ImageFromText(text string, fontBytes []byte, x int, fontsize int) (outimg image.Image, err error) {
 	newImage := image.NewRGBA(image.Rect(0, 0, 16, 16))
-	labelImage, err := addLabel(newImage, -x, 12, text, 15, fontBytes)
+	labelImage, err := addLabel(newImage, -x, 12, text, fontsize, fontBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -19,6 +22,25 @@ func ImageFromText(text string, fontBytes []byte, x int) (outimg image.Image, er
 	// rotate the image by 90 degrees
 	dstImage := imaging.Rotate90(labelImage)
 	return dstImage, nil
+}
+
+func LoadIdleAnimation(fontBytes []byte, apikey string, location string) (outimage image.Image, err error) {
+	w, err := owm.NewCurrent("C", "EN", apikey)
+	if err != nil {
+		return nil, err
+	}
+
+	err = w.CurrentByName(location)
+	if err != nil {
+		return nil, err
+	}
+	// fmt.Sprintln(w)
+
+	textimage, err := ImageFromText(fmt.Sprint(w.Main.Temp)+"°", fontBytes, 0, 10)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return textimage, nil
 }
 
 func loadFontFaceReader(fontBytes []byte, points float64) (font.Face, error) {

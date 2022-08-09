@@ -3,6 +3,7 @@ module github.com/headblockhead/unicornsignage
 go 1.17
 
 require (
+	github.com/briandowns/openweathermap v0.18.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/eclipse/paho.mqtt.golang v1.4.1
 	github.com/fogleman/gg v1.3.0
