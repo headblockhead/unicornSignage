@@ -184,7 +184,7 @@ func main() {
 				imgToDraw = nil
 			}
 			if imgToDraw != nil {
-				for i := 0; i < 5; i++ {
+				for i := 0; i < 15; i++ {
 					if shouldDraw {
 						display.Draw(image.Rect(0, 0, 16, 16), imgToDraw, image.Point{0, 0})
 						time.Sleep(150 * time.Millisecond)
