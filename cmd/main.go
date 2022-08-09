@@ -9,8 +9,6 @@ import (
 	"image/png"
 	"io/ioutil"
 	"log"
-	"strconv"
-	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -28,9 +26,17 @@ type Credentials struct {
 }
 
 type Command struct {
-	Messsage string
-	Priority int
+	Messsage string   `json:"string"`
+	Priority Priority `json:"priority"`
 }
+
+type Priority string
+
+const (
+	PriorityInfo        Priority = "1.0"
+	PriorityWarning     Priority = "3.0"
+	PriorityExclamation Priority = "3.0"
+)
 
 //go:embed fonts
 var fonts embed.FS
@@ -65,13 +71,13 @@ func main() {
 		// Runs when a message that is subscribed to is received.
 		log.Printf("Received message: %s on topic: %s", msg.Payload(), msg.Topic())
 		if msg.Topic() == "home-assistant/signage/control" {
-			msgtext := strings.Split(string(msg.Payload()), " 5eb725e9f43c46758d44017f27ed3e8b ")[0]
-			msgprio := strings.Split(string(msg.Payload()), " 5eb725e9f43c46758d44017f27ed3e8b ")[1]
-			priority, err := strconv.Atoi(msgprio[0:1])
+			var cmd Command
+			err = json.Unmarshal(msg.Payload(), &cmd)
 			if err != nil {
-				log.Printf("Error converting priority to int: %s", err)
+				log.Printf("failed to unmarshal payload: %q", string(msg.Payload()))
+				return
 			}
-			textToDraw <- Command{Messsage: msgtext, Priority: priority}
+			textToDraw <- cmd
 		}
 		if msg.Topic() == "home-assistant/signage/display/control" {
 			shouldDraw = string(msg.Payload()) == "payload_on"
@@ -165,26 +171,21 @@ func main() {
 	for {
 		select {
 		case command := <-textToDraw:
+			var imgToDraw image.Image
+			switch command.Priority {
+			case PriorityInfo:
+				imgToDraw = bluImg
+			case PriorityWarning:
+				imgToDraw = orgImg
+			default:
+				imgToDraw = redImg
+			}
 			for i := 0; i < 5; i++ {
 				if shouldDraw {
-					if command.Priority == 3 {
-						display.Draw(image.Rect(0, 0, 16, 16), redImg, image.Point{0, 0})
-						time.Sleep(150 * time.Millisecond)
-						display.Halt()
-						time.Sleep(150 * time.Millisecond)
-					}
-					if command.Priority == 2 {
-						display.Draw(image.Rect(0, 0, 16, 16), orgImg, image.Point{0, 0})
-						time.Sleep(150 * time.Millisecond)
-						display.Halt()
-						time.Sleep(150 * time.Millisecond)
-					}
-					if command.Priority == 1 {
-						display.Draw(image.Rect(0, 0, 16, 16), bluImg, image.Point{0, 0})
-						time.Sleep(150 * time.Millisecond)
-						display.Halt()
-						time.Sleep(150 * time.Millisecond)
-					}
+					display.Draw(image.Rect(0, 0, 16, 16), imgToDraw, image.Point{0, 0})
+					time.Sleep(150 * time.Millisecond)
+					display.Halt()
+					time.Sleep(150 * time.Millisecond)
 				} else {
 					display.Halt()
 				}
