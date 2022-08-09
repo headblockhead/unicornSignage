@@ -26,7 +26,7 @@ type Credentials struct {
 }
 
 type Command struct {
-	Messsage string   `json:"string"`
+	Messsage string   `json:"msg"`
 	Priority Priority `json:"priority"`
 }
 
@@ -34,7 +34,7 @@ type Priority string
 
 const (
 	PriorityInfo        Priority = "1.0"
-	PriorityWarning     Priority = "3.0"
+	PriorityWarning     Priority = "2.0"
 	PriorityExclamation Priority = "3.0"
 )
 
