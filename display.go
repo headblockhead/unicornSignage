@@ -1,9 +1,9 @@
 package unicornsignage
 
 import (
-	"fmt"
 	"image"
 	"log"
+	"strconv"
 
 	owm "github.com/briandowns/openweathermap"
 	"github.com/disintegration/imaging"
@@ -36,7 +36,7 @@ func LoadIdleAnimation(fontBytes []byte, apikey string, location string) (outima
 	}
 	// fmt.Sprintln(w)
 
-	textimage, err := ImageFromText(fmt.Sprint(w.Main.Temp)+"°", fontBytes, 0, 10)
+	textimage, err := ImageFromText(strconv.Itoa(int(w.Main.Temp)), fontBytes, 0, 15)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -231,11 +231,13 @@ func displayIdleAnimation(display *unicornhd.Dev, quit chan bool, shouldDraw *bo
 			return
 		default:
 			if *shouldDraw {
-				idleAnim, err := unicornsignage.LoadIdleAnimation(fontBytes, creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation)
-				if err != nil {
-					log.Fatal(err)
-				}
-				display.Draw(image.Rect(0, 0, 16, 16), idleAnim, image.Point{0, 0})
+				// display.Halt()
+				// idleAnim, err := unicornsignage.LoadIdleAnimation(fontBytes, creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation)
+				// if err != nil {
+				// 	log.Fatal(err)
+				// }
+				// display.Draw(image.Rect(0, 0, 16, 16), idleAnim, image.Point{0, 0})
+				// time.Sleep(100 * time.Millisecond)
 			} else {
 				display.Halt()
 			}
