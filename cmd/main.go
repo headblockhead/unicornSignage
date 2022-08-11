@@ -83,10 +83,6 @@ func main() {
 			}
 			textToDraw <- cmd
 		}
-		if msg.Topic() == "home-assistant/signage/display/control" {
-			*shouldDraw = string(msg.Payload()) == "payload_on"
-			publishDisplayStatus(client, *shouldDraw)
-		}
 	})
 
 	// Create the MQTT client.
@@ -98,7 +94,6 @@ func main() {
 
 	// Subscribe to the topic.
 	subscribe(client, "home-assistant/signage/control", 0)
-	subscribe(client, "home-assistant/signage/display/control", 0)
 
 	// Publish the availability.
 	publishAvailable(client)
@@ -168,7 +163,6 @@ func main() {
 			case <-ticker.C:
 				log.Printf("Ticker: Publishing current state")
 				publishAvailable(client)
-				publishDisplayStatus(client, *shouldDraw)
 				oldWeatherImage, err = unicornsignage.GetWeatherImageFromID(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
 				if err != nil {
 					log.Fatal(err)
@@ -235,7 +229,6 @@ func displayCurrentWeather(display *unicornhd.Dev, shouldDraw *bool, fontBytes [
 	for {
 		if !*isShowingText {
 			display.Draw(image.Rect(0, 0, 16, 16), *oldWeatherImage, image.Point{0, 0})
-			time.Sleep(1 * time.Second)
 		} else {
 			return
 		}
@@ -267,13 +260,4 @@ func subscribe(client mqtt.Client, topic string, qos byte) {
 
 func publishAvailable(client mqtt.Client) {
 	publish(client, "home-assistant/signage/availability", 1, "online", false)
-	publish(client, "home-assistant/signage/display/availability", 1, "online", false)
-}
-
-func publishDisplayStatus(client mqtt.Client, status bool) {
-	if status {
-		publish(client, "home-assistant/signage/display/contact", 1, "payload_on", false)
-	} else {
-		publish(client, "home-assistant/signage/display/contact", 1, "payload_off", false)
-	}
 }
