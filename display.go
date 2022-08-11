@@ -60,7 +60,7 @@ func GetWeatherImageFromID(apikey string, location string, imageLocation embed.F
 
 func RotateImageForDisplay(img image.Image) (outimage image.Image, err error) {
 	// rotate the image by 90 degrees
-	dstImage := imaging.Rotate(img, -90, color.Black)
+	dstImage := imaging.Rotate(img, 90, color.Black)
 	return dstImage, nil
 }
 

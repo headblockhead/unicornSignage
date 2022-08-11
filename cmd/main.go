@@ -207,11 +207,7 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				rotatedImage, err := unicornsignage.RotateImageForDisplay(textimage)
-				if err != nil {
-					log.Fatal(err)
-				}
-				display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
+				display.Draw(image.Rect(0, 0, 16, 16), textimage, image.Point{0, 0})
 				time.Sleep(2 * time.Millisecond)
 				if (x > 16) && imageIsFullyBlack(textimage) {
 					break
