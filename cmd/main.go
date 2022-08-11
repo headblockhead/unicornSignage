@@ -218,9 +218,11 @@ func main() {
 }
 
 func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Credentials, textToDraw *chan Command, oldWeatherImage *image.Image, isShowingText *bool) {
+	time.Sleep(100 * time.Millisecond)
 	for {
 		if !*isShowingText {
 			display.Draw(image.Rect(0, 0, 16, 16), *oldWeatherImage, image.Point{0, 0})
+			time.Sleep(30 * time.Second)
 		} else {
 			return
 		}
