@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"image"
+	"image/color"
 	"strconv"
 
 	owm "github.com/briandowns/openweathermap"
@@ -55,6 +56,12 @@ func GetWeatherImageFromID(apikey string, location string, imageLocation embed.F
 		return nil, err
 	}
 	return existingImage, nil
+}
+
+func RotateImageForDisplay(img image.Image) (outimage image.Image, err error) {
+	// rotate the image by 90 degrees
+	dstImage := imaging.Rotate(img, -90, color.Black)
+	return dstImage, nil
 }
 
 func loadFontFaceReader(fontBytes []byte, points float64) (font.Face, error) {

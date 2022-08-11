@@ -190,8 +190,11 @@ func main() {
 			}
 			if imgToDraw != nil {
 				for i := 0; i < 15; i++ {
-
-					display.Draw(image.Rect(0, 0, 16, 16), imgToDraw, image.Point{0, 0})
+					rotatedImage, err := unicornsignage.RotateImageForDisplay(imgToDraw)
+					if err != nil {
+						log.Fatal(err)
+					}
+					display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
 					time.Sleep(150 * time.Millisecond)
 					display.Halt()
 					time.Sleep(150 * time.Millisecond)
@@ -204,7 +207,11 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				display.Draw(image.Rect(0, 0, 16, 16), textimage, image.Point{0, 0})
+				rotatedImage, err := unicornsignage.RotateImageForDisplay(textimage)
+				if err != nil {
+					log.Fatal(err)
+				}
+				display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
 				time.Sleep(2 * time.Millisecond)
 				if (x > 16) && imageIsFullyBlack(textimage) {
 					break
@@ -221,7 +228,11 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 	time.Sleep(100 * time.Millisecond)
 	for {
 		if !*isShowingText {
-			display.Draw(image.Rect(0, 0, 16, 16), *oldWeatherImage, image.Point{0, 0})
+			rotatedImage, err := unicornsignage.RotateImageForDisplay(*oldWeatherImage)
+			if err != nil {
+				log.Fatal(err)
+			}
+			display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
 			time.Sleep(30 * time.Second)
 		} else {
 			return
