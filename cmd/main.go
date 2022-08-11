@@ -62,9 +62,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	shouldDraw := new(bool)
-	*shouldDraw = false
-
 	// Create the MQTT options.
 	options := mqtt.NewClientOptions()
 	options.AddBroker(fmt.Sprintf("tcp://%s:%d", creds.Broker, creds.Port))
@@ -173,7 +170,7 @@ func main() {
 
 	isShowingText := false
 
-	go displayCurrentWeather(display, shouldDraw, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
+	go displayCurrentWeather(display, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
 
 	// Wait for messages.
 	for {
@@ -193,39 +190,34 @@ func main() {
 			}
 			if imgToDraw != nil {
 				for i := 0; i < 15; i++ {
-					if *shouldDraw {
-						display.Draw(image.Rect(0, 0, 16, 16), imgToDraw, image.Point{0, 0})
-						time.Sleep(150 * time.Millisecond)
-						display.Halt()
-						time.Sleep(150 * time.Millisecond)
-					} else {
-						display.Halt()
-					}
+
+					display.Draw(image.Rect(0, 0, 16, 16), imgToDraw, image.Point{0, 0})
+					time.Sleep(150 * time.Millisecond)
+					display.Halt()
+					time.Sleep(150 * time.Millisecond)
+
 				}
 			}
 			for x := -16; true; x++ {
-				if *shouldDraw {
-					textimage, err := unicornsignage.ImageFromText(command.Messsage, fontBytes, x, 15)
-					if err != nil {
-						log.Fatal(err)
-					}
-					display.Draw(image.Rect(0, 0, 16, 16), textimage, image.Point{0, 0})
-					time.Sleep(2 * time.Millisecond)
-					if (x > 16) && imageIsFullyBlack(textimage) {
-						break
-					}
-				} else {
-					display.Halt()
+
+				textimage, err := unicornsignage.ImageFromText(command.Messsage, fontBytes, x, 15)
+				if err != nil {
+					log.Fatal(err)
+				}
+				display.Draw(image.Rect(0, 0, 16, 16), textimage, image.Point{0, 0})
+				time.Sleep(2 * time.Millisecond)
+				if (x > 16) && imageIsFullyBlack(textimage) {
+					break
 				}
 
 			}
 			isShowingText = false
-			go displayCurrentWeather(display, shouldDraw, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
+			go displayCurrentWeather(display, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
 		}
 	}
 }
 
-func displayCurrentWeather(display *unicornhd.Dev, shouldDraw *bool, fontBytes []byte, creds *Credentials, textToDraw *chan Command, oldWeatherImage *image.Image, isShowingText *bool) {
+func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Credentials, textToDraw *chan Command, oldWeatherImage *image.Image, isShowingText *bool) {
 	for {
 		if !*isShowingText {
 			display.Draw(image.Rect(0, 0, 16, 16), *oldWeatherImage, image.Point{0, 0})
