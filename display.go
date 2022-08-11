@@ -1,7 +1,10 @@
 package unicornsignage
 
 import (
+	"bytes"
+	"embed"
 	"image"
+	"strconv"
 
 	owm "github.com/briandowns/openweathermap"
 	"github.com/disintegration/imaging"
@@ -22,16 +25,36 @@ func ImageFromText(text string, fontBytes []byte, x int, fontsize int) (outimg i
 	return dstImage, nil
 }
 
-func GetWeatherSentence(apikey string, location string) (outtext string, err error) {
+func GetWeatherImageFromID(apikey string, location string, imageLocation embed.FS) (outImage image.Image, err error) {
 	w, err := owm.NewCurrent("C", "EN", apikey)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	err = w.CurrentByName(location)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return w.Weather[0].Description, nil
+	id := w.Weather[0].ID
+	isNight := w.Weather[0].Icon[len(w.Weather[0].Icon)-1:] == "n"
+	existingImageFile, err := imageLocation.ReadFile("images/" + "weatherImages/" + strconv.Itoa(id) + ".png")
+	if err != nil {
+		if isNight {
+			existingImageFile, err = imageLocation.ReadFile("images/" + "weatherImages/" + strconv.Itoa(id) + "n" + ".png")
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			existingImageFile, err = imageLocation.ReadFile("images/" + "weatherImages/" + strconv.Itoa(id) + "d" + ".png")
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	existingImage, _, err := image.Decode(bytes.NewReader(existingImageFile))
+	if err != nil {
+		return nil, err
+	}
+	return existingImage, nil
 }
 
 func loadFontFaceReader(fontBytes []byte, points float64) (font.Face, error) {

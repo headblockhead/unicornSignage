@@ -154,8 +154,13 @@ func main() {
 	// Clear the display.
 	display.Halt()
 
-	// Every 10 minutes, publish the current state.
+	// Every 10 minutes, publish the current state and update the weather info.
 	ticker := time.NewTicker(10 * time.Minute)
+
+	oldWeatherImage, err := unicornsignage.GetWeatherImageFromID(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	go func() {
 		for {
@@ -164,16 +169,23 @@ func main() {
 				log.Printf("Ticker: Publishing current state")
 				publishAvailable(client)
 				publishDisplayStatus(client, *shouldDraw)
+				oldWeatherImage, err = unicornsignage.GetWeatherImageFromID(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 	}()
 
-	go addWeatherReportToInformation(display, shouldDraw, fontBytes, &creds, &textToDraw)
+	isShowingText := false
+
+	go displayCurrentWeather(display, shouldDraw, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
 
 	// Wait for messages.
 	for {
 		select {
 		case command := <-textToDraw:
+			isShowingText = true
 			var imgToDraw image.Image
 			switch command.Priority {
 			case PriorityExclamation:
@@ -211,25 +223,19 @@ func main() {
 				} else {
 					display.Halt()
 				}
+
 			}
+			isShowingText = false
 		}
 	}
 }
 
-func addWeatherReportToInformation(display *unicornhd.Dev, shouldDraw *bool, fontBytes []byte, creds *Credentials, textToDraw *chan Command) {
+func displayCurrentWeather(display *unicornhd.Dev, shouldDraw *bool, fontBytes []byte, creds *Credentials, textToDraw *chan Command, oldWeatherImage *image.Image, isShowingText *bool) {
 	for {
-		idleText, err := unicornsignage.GetWeatherSentence(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation)
-		if err != nil {
-			log.Fatal(err)
+		if !*isShowingText {
+			display.Draw(image.Rect(0, 0, 16, 16), *oldWeatherImage, image.Point{0, 0})
+			time.Sleep(1 * time.Second)
 		}
-		cmd := Command{
-			Messsage: idleText,
-			Priority: PriorityNone,
-		}
-		*textToDraw <- cmd
-		// 10 RPM (max speed is 60 RPM)
-		// RPM is requests per minute
-		time.Sleep(6 * time.Second)
 	}
 }
 
