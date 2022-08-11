@@ -226,6 +226,7 @@ func main() {
 
 			}
 			isShowingText = false
+			go displayCurrentWeather(display, shouldDraw, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
 		}
 	}
 }
@@ -235,6 +236,8 @@ func displayCurrentWeather(display *unicornhd.Dev, shouldDraw *bool, fontBytes [
 		if !*isShowingText {
 			display.Draw(image.Rect(0, 0, 16, 16), *oldWeatherImage, image.Point{0, 0})
 			time.Sleep(1 * time.Second)
+		} else {
+			return
 		}
 	}
 }
