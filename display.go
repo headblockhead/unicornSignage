@@ -2,8 +2,6 @@ package unicornsignage
 
 import (
 	"image"
-	"log"
-	"strconv"
 
 	owm "github.com/briandowns/openweathermap"
 	"github.com/disintegration/imaging"
@@ -24,23 +22,16 @@ func ImageFromText(text string, fontBytes []byte, x int, fontsize int) (outimg i
 	return dstImage, nil
 }
 
-func LoadIdleAnimation(fontBytes []byte, apikey string, location string) (outimage image.Image, err error) {
+func GetWeatherSentence(apikey string, location string) (outtext string, err error) {
 	w, err := owm.NewCurrent("C", "EN", apikey)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
 	err = w.CurrentByName(location)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	// fmt.Sprintln(w)
-
-	textimage, err := ImageFromText(strconv.Itoa(int(w.Main.Temp)), fontBytes, 0, 15)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return textimage, nil
+	return w.Weather[0].Description, nil
 }
 
 func loadFontFaceReader(fontBytes []byte, points float64) (font.Face, error) {

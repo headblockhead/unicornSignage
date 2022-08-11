@@ -168,15 +168,12 @@ func main() {
 		}
 	}()
 
-	quit := make(chan bool)
-	isRunningIdle := false
+	go addWeatherReportToInformation(display, shouldDraw, fontBytes, &creds, &textToDraw)
 
 	// Wait for messages.
 	for {
 		select {
 		case command := <-textToDraw:
-			quit <- true
-			isRunningIdle = false
 			var imgToDraw image.Image
 			switch command.Priority {
 			case PriorityExclamation:
@@ -215,33 +212,24 @@ func main() {
 					display.Halt()
 				}
 			}
-		default:
-			if !isRunningIdle {
-				isRunningIdle = true
-				go displayIdleAnimation(display, quit, shouldDraw, fontBytes, &creds)
-			}
 		}
 	}
 }
 
-func displayIdleAnimation(display *unicornhd.Dev, quit chan bool, shouldDraw *bool, fontBytes []byte, creds *Credentials) {
+func addWeatherReportToInformation(display *unicornhd.Dev, shouldDraw *bool, fontBytes []byte, creds *Credentials, textToDraw *chan Command) {
 	for {
-		select {
-		case <-quit:
-			return
-		default:
-			if *shouldDraw {
-				// display.Halt()
-				// idleAnim, err := unicornsignage.LoadIdleAnimation(fontBytes, creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation)
-				// if err != nil {
-				// 	log.Fatal(err)
-				// }
-				// display.Draw(image.Rect(0, 0, 16, 16), idleAnim, image.Point{0, 0})
-				// time.Sleep(100 * time.Millisecond)
-			} else {
-				display.Halt()
-			}
+		idleText, err := unicornsignage.GetWeatherSentence(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation)
+		if err != nil {
+			log.Fatal(err)
 		}
+		cmd := Command{
+			Messsage: idleText,
+			Priority: PriorityNone,
+		}
+		*textToDraw <- cmd
+		// 10 RPM (max speed is 60 RPM)
+		// RPM is requests per minute
+		time.Sleep(6 * time.Second)
 	}
 }
 
