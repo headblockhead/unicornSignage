@@ -229,7 +229,7 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 				log.Fatal(err)
 			}
 			// Do not show weather if it is later than 9PM
-			if time.Now().Hour() > 21 {
+			if time.Now().Hour() >= 21 {
 				display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
 			}
 			time.Sleep(30 * time.Second)
