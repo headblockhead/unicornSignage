@@ -16,7 +16,7 @@ import (
 
 func ImageFromText(text string, fontBytes []byte, x int, fontsize int) (outimg image.Image, err error) {
 	newImage := image.NewRGBA(image.Rect(0, 0, 16, 16))
-	labelImage, err := addLabel(newImage, -x, 12, text, fontsize, fontBytes)
+	labelImage, err := addText(newImage, -x, 12, text, fontsize, fontBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func ImageFromText(text string, fontBytes []byte, x int, fontsize int) (outimg i
 	return dstImage, nil
 }
 
-func GetWeatherImageFromID(apikey string, location string, imageLocation embed.FS) (outImage image.Image, err error) {
+func GetWeatherImageFromAPI(apikey string, location string, imageLocation embed.FS) (outImage image.Image, err error) {
 	w, err := owm.NewCurrent("C", "EN", apikey)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func GetWeatherImageFromID(apikey string, location string, imageLocation embed.F
 	return existingImage, nil
 }
 
-func RotateImageForDisplay(img image.Image) (outimage image.Image, err error) {
+func RotateImage90(img image.Image) (outimage image.Image, err error) {
 	// rotate the image by 90 degrees
 	dstImage := imaging.Rotate(img, 90, color.Black)
 	return dstImage, nil
@@ -76,7 +76,7 @@ func loadFontFaceReader(fontBytes []byte, points float64) (font.Face, error) {
 	return face, nil
 }
 
-func addLabel(img image.Image, x, y int, label string, size int, fontBytes []byte) (outimage image.Image, err error) {
+func addText(img image.Image, x, y int, label string, size int, fontBytes []byte) (outimage image.Image, err error) {
 	var w = img.Bounds().Dx()
 	var h = img.Bounds().Dy()
 	dc := gg.NewContext(w, h)

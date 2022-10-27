@@ -149,7 +149,7 @@ func main() {
 	// Every 10 minutes, publish the current state and update the weather info.
 	ticker := time.NewTicker(10 * time.Minute)
 
-	oldWeatherImage, err := unicornsignage.GetWeatherImageFromID(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
+	oldWeatherImage, err := unicornsignage.GetWeatherImageFromAPI(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -160,7 +160,7 @@ func main() {
 			case <-ticker.C:
 				log.Printf("Ticker: Publishing current state")
 				publishAvailable(client)
-				oldWeatherImage, err = unicornsignage.GetWeatherImageFromID(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
+				oldWeatherImage, err = unicornsignage.GetWeatherImageFromAPI(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -190,7 +190,7 @@ func main() {
 			}
 			if imgToDraw != nil {
 				for i := 0; i < 15; i++ {
-					rotatedImage, err := unicornsignage.RotateImageForDisplay(imgToDraw)
+					rotatedImage, err := unicornsignage.RotateImage90(imgToDraw)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -224,7 +224,7 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 	time.Sleep(100 * time.Millisecond)
 	for {
 		if !*isShowingText {
-			rotatedImage, err := unicornsignage.RotateImageForDisplay(*oldWeatherImage)
+			rotatedImage, err := unicornsignage.RotateImage90(*oldWeatherImage)
 			if err != nil {
 				log.Fatal(err)
 			}
