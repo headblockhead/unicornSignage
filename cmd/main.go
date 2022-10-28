@@ -149,20 +149,46 @@ func main() {
 	// Every 10 minutes, publish the current state and update the weather info.
 	ticker := time.NewTicker(10 * time.Minute)
 
+	// Every hour, if the API used to be down, check if the API is still down.
+	apiErrorChecker := time.NewTicker(30 * time.Minute)
+	hasHadError := false
+
 	oldWeatherImage, err := unicornsignage.GetWeatherImageFromAPI(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		log.Println("Error getting image from API. Trying again in 30 minutes.")
+		hasHadError = true
 	}
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				log.Printf("Ticker: Publishing current state")
+				log.Println("Ticker: Publishing current state")
 				publishAvailable(client)
-				oldWeatherImage, err = unicornsignage.GetWeatherImageFromAPI(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
-				if err != nil {
-					log.Fatal(err)
+				if !hasHadError {
+					log.Println("Ticker: Updating the display image")
+					oldWeatherImage, err = unicornsignage.GetWeatherImageFromAPI(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
+					if err != nil {
+						log.Println(err)
+						log.Println("Error getting image from API. Trying again in 30 minutes.")
+						hasHadError = true
+					}
+				} else {
+					log.Println("Ticker: API is not up, not attempting to update the display image")
+				}
+			case <-apiErrorChecker.C:
+				if hasHadError {
+					log.Println("API Error Ticker: Testing API status")
+					oldWeatherImage, err = unicornsignage.GetWeatherImageFromAPI(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
+					if err != nil {
+						log.Println(err)
+						log.Println("API Error Ticker: API is still returning error")
+						hasHadError = true
+					} else {
+						log.Println("API Error Ticker: API is not returning error anymore!")
+						hasHadError = false
+					}
 				}
 			}
 		}
@@ -170,7 +196,9 @@ func main() {
 
 	isShowingText := false
 
-	go displayCurrentWeather(display, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
+	if !hasHadError {
+		go displayCurrentWeather(display, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
+	}
 
 	// Wait for messages.
 	for {
@@ -215,7 +243,9 @@ func main() {
 
 			}
 			isShowingText = false
-			go displayCurrentWeather(display, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
+			if !hasHadError {
+				go displayCurrentWeather(display, fontBytes, &creds, &textToDraw, &oldWeatherImage, &isShowingText)
+			}
 		}
 	}
 }
