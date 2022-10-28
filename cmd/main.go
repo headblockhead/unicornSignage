@@ -253,19 +253,20 @@ func main() {
 func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Credentials, textToDraw *chan Command, oldWeatherImage *image.Image, isShowingText *bool) {
 	time.Sleep(100 * time.Millisecond)
 	for {
-		if !*isShowingText {
-			rotatedImage, err := unicornsignage.RotateImage90(*oldWeatherImage)
-			if err != nil {
-				log.Fatal(err)
-			}
-			// Do not show weather if it is later than 9PM
-			if time.Now().Hour() >= 21 {
-				display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
-			}
-			time.Sleep(30 * time.Second)
-		} else {
+		// If we are currently showing text on the screen, don't try to show the weather.
+		if *isShowingText {
 			return
 		}
+		// If it is after 9PM, don't show the weather either.
+		if time.Now().Local().Hour() >= 21 {
+			return
+		}
+		rotatedImage, err := unicornsignage.RotateImage90(*oldWeatherImage)
+		if err != nil {
+			log.Fatal(err)
+		}
+		display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
+		time.Sleep(30 * time.Second)
 	}
 }
 
