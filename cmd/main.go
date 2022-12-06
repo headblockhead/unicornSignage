@@ -253,9 +253,9 @@ func main() {
 func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Credentials, textToDraw *chan Command, oldWeatherImage *image.Image, isShowingText *bool) {
 	time.Sleep(100 * time.Millisecond)
 	for {
-		// If we are currently showing text on the screen, don't try to show the weather.
+		// If we are currently showing text on the screen, stop trying to show the weather.
 		if *isShowingText {
-			continue
+			return
 		}
 		// If it is after 9PM, don't show the weather either.
 		if time.Now().Local().Hour() >= 21 {
