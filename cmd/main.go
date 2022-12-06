@@ -257,8 +257,8 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 		if *isShowingText {
 			return
 		}
-		// If it is after 9PM, don't show the weather either.
-		if time.Now().Local().Hour() >= 21 {
+		// If it is after 9PM, or before 7AM, don't show the weather either.
+		if time.Now().Local().Hour() >= 21 || time.Now().Local().Hour() < 7 {
 			continue
 		}
 		rotatedImage, err := unicornsignage.RotateImage90(*oldWeatherImage)
