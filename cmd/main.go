@@ -255,11 +255,11 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 	for {
 		// If we are currently showing text on the screen, don't try to show the weather.
 		if *isShowingText {
-			return
+			continue
 		}
 		// If it is after 9PM, don't show the weather either.
 		if time.Now().Local().Hour() >= 21 {
-			return
+			continue
 		}
 		rotatedImage, err := unicornsignage.RotateImage90(*oldWeatherImage)
 		if err != nil {
