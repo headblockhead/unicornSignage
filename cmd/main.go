@@ -54,12 +54,12 @@ func main() {
 	// Load credentials
 	creds_data, err := ioutil.ReadFile("./creds.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	var creds Credentials
 	err = json.Unmarshal(creds_data, &creds)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Create the MQTT options.
@@ -100,47 +100,47 @@ func main() {
 
 	p, err := spireg.Open("")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	defer p.Close()
 
 	// Create a new Unicorn HAT HD.
 	display, err := unicornhd.New(p)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Load the font
 	fontBytes, err := fonts.ReadFile("fonts/UbuntuMono-Regular.ttf")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Load the images
 	imageBytes, err := images.ReadFile("images/redScreen.png")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	redImg, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	// Load the images
 	imageBytes, err = images.ReadFile("images/orangeScreen.png")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	orgImg, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	imageBytes, err = images.ReadFile("images/blueScreen.png")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	bluImg, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Clear the display.
@@ -220,7 +220,7 @@ func main() {
 				for i := 0; i < 15; i++ {
 					rotatedImage, err := unicornsignage.RotateImage90(imgToDraw)
 					if err != nil {
-						log.Fatal(err)
+						log.Println(err)
 					}
 					display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
 					time.Sleep(150 * time.Millisecond)
@@ -233,7 +233,7 @@ func main() {
 
 				textimage, err := unicornsignage.ImageFromText(command.Messsage, fontBytes, x, 15)
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 				}
 				display.Draw(image.Rect(0, 0, 16, 16), textimage, image.Point{0, 0})
 				time.Sleep(2 * time.Millisecond)
@@ -263,7 +263,7 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 		}
 		rotatedImage, err := unicornsignage.RotateImage90(*oldWeatherImage)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
 		time.Sleep(30 * time.Second)
