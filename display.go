@@ -15,7 +15,7 @@ import (
 )
 
 func ImageFromText(text string, fontBytes []byte, x int, fontsize int) (outimg image.Image, err error) {
-	newImage := image.NewRGBA(image.Rect(0, 0, 16, 16))
+	newImage := image.NewNRGBA(image.Rect(0, 0, 16, 16))
 	labelImage, err := addText(newImage, -x, 12, text, fontsize, fontBytes)
 	if err != nil {
 		return nil, err

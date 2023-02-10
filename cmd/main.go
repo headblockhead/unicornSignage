@@ -257,8 +257,11 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 		if *isShowingText {
 			return
 		}
+		time.Sleep(30 * time.Second)
 		// If it is after 9PM, or before 7AM, don't show the weather either.
 		if time.Now().Local().Hour() >= 21 || time.Now().Local().Hour() < 7 {
+			newImage := image.NewNRGBA(image.Rect(0, 0, 16, 16))
+			display.Draw(image.Rect(0, 0, 16, 16), newImage, image.Point{0, 0})
 			continue
 		}
 		rotatedImage, err := unicornsignage.RotateImage90(*oldWeatherImage)
@@ -266,7 +269,6 @@ func displayCurrentWeather(display *unicornhd.Dev, fontBytes []byte, creds *Cred
 			log.Println(err)
 		}
 		display.Draw(image.Rect(0, 0, 16, 16), rotatedImage, image.Point{0, 0})
-		time.Sleep(30 * time.Second)
 	}
 }
 
