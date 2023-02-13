@@ -15,6 +15,8 @@ Next, SSH into the rpi. In the rpi, run ```sudo nano /lib/systemd/system/display
 Description=Display device
 After=network-online.target
 Wants=network-online.target
+StartLimitIntervalSec=500
+StartLimitBurst=5
 
 [Install]
 RequiredBy=multi-user.target
@@ -22,6 +24,8 @@ RequiredBy=multi-user.target
 [Service]
 Type=simple
 User=root
+Restart=on-failure
+RestartSec=5s
 WorkingDirectory=/home/pi
 ExecStart=/home/pi/display
 ```
