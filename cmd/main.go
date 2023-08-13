@@ -164,8 +164,17 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
+				log.Printf("Ticker: Restarting the MQTT connection.")
+				client.Disconnect(250) // allow 250ms for the disconnect to complete
+				if token := client.Connect(); token.Wait() && token.Error() != nil {
+					log.Printf("Ticker: Error restarting MQTT: %s", token.Error())
+				}
 				log.Println("Ticker: Publishing current state")
 				publishAvailable(client)
+
+				log.Printf("Ticker: Re-subscribing to topics")
+				subscribe(client, "home-assistant/signage/control", 0)
+
 				if !hasHadError {
 					log.Println("Ticker: Updating the display image")
 					oldWeatherImage, err = unicornsignage.GetWeatherImageFromAPI(creds.OpenWeatherApiKey, creds.OpenWeatherApiLocation, images)
@@ -177,6 +186,7 @@ func main() {
 				} else {
 					log.Println("Ticker: API is not up, not attempting to update the display image")
 				}
+				log.Printf("Ticker: Done")
 			case <-apiErrorChecker.C:
 				if hasHadError {
 					log.Println("API Error Ticker: Testing API status")
